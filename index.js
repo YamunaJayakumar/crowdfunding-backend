@@ -7,6 +7,7 @@ const fundriserServer=express()
 fundriserServer.use(cors())
 fundriserServer.use(express.json())
 fundriserServer.use(router)
+fundriserServer.use('/uploads',express.static('./uploads'))
 
 const PORT=3000
 fundriserServer.listen(PORT,()=>{
