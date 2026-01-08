@@ -61,6 +61,7 @@ exports.loginController=async(req,res)=>{
 
 
 }
+//google sign in 
 exports.googleLoginController=async(req,res)=>{
     console.log("inside googleLoginController")
     const{email,password,username,picture}=req.body
@@ -89,4 +90,21 @@ exports.googleLoginController=async(req,res)=>{
         
     }
 
+}
+//update fundraiser profile
+exports.updateFundraiserProfile=async(req,res)=>{
+    console.log("inside updateFundraiserProfile ")
+    const {id}=req.params
+    const fundraiserMail=req.payload.userMail
+    const {username,email,password,picture,role}=req.body
+    const uploadImage =req.file? req.file.filename : picture
+    console.log(id,username,email,password,uploadImage,role)
+    try{
+        
+        const updateFundraiser=await users.findByIdAndUpdate({_id:id},{username,password,picture:uploadImage},{new:true})
+        res.status(200).json(updateFundraiser)
+    }catch(err){
+        console.log(err)
+        res.status(500).json(err)
+    }
 }

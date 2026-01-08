@@ -26,33 +26,44 @@ const campaignSchema =new mongoose.Schema({
     },
     goalAmount:{
         type:Number,
-        required:true
+        required:true,
+        min:[1,"Goal amount must be greater than 0"]
     },
      minDonation:{
         type:Number,
-        required:true
+        min: [0, "Minimum donation cannot be negative"],
+        default: 0
     },
      endDate:{
         type:Date,
-        required:true
+        required:true,
+        validate:{
+        validator:value => value > new Date(),
+        message:"End date must be in the future"
+    }
+
     },
     image:{
         type:String,
-        required:true
+        
     },
      documents:{
-        type:Array,
+        type:[String],
         required:true
     },
     status:{
         type:String,
         default:"pending"
     },
+    promotionRequest:{
+    type:Boolean,
+    default:false
+   },
     totalRaised:{
         type:Number,
         default:0
     },
-    fundriserMail:{
+    fundraiserMail:{
         type:String,
         required:true
     },

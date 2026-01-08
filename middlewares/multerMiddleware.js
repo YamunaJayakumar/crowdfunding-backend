@@ -5,19 +5,19 @@ const storage=multer.diskStorage({
         cb(null,'./uploads')
 
     },
-    filename:(req,res,cb)=>{
+    filename:(req,file,cb)=>{
         cb(null,`Image-${Date.now()}-${file.originalname}`)
 
     }
 })
-const fileFilter=(req,filw,cb)=>{
+const fileFilter=(req,file,cb)=>{
     //only jpg,png,webp
     if(file.mimetype=='image/jpg' || file.mimetype=="image/jpeg"|| file.mimetype=="image/png" || file.mimetype=="image/webp"){
         cb(null,true)
 
     }
     else{
-        cb(null,fasle)
+        cb(null,false)
     }
 
 }
