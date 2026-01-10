@@ -16,10 +16,15 @@ const jwtmiddleware = (req, res, next) => {
     }
 
     try {
-        const jwtresponse = jwt.verify(token, process.env.JWTSECRET)
-        console.log(jwtresponse);
+        const payload = jwt.verify(token, process.env.JWTSECRET)
+        console.log(payload);
 
-        req.payload = jwtresponse
+       req.payload = {
+      userId: payload.userId,
+      userMail: payload.userMail,
+      role: payload.role
+    };
+    console.log(req.payload)
 
         next()
 

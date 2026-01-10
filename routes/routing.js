@@ -6,13 +6,21 @@ const router=new express.Router()
 const multerMiddleware =require('../middlewares/multerMiddleware')
 const adminMiddleware = require('../middlewares/adminMiddleware')
 const adminController=require('../controllers/adminController')
-
+const donationController =require('../controllers/donationController')
 //register
 router.post('/register',userController.registerController)
 //login
 router.post('/login',userController.loginController)
 //google-login
 router.post('/google/sign-in',userController.googleLoginController)
+//get all active campaign
+router.get('/campaigns/acive/all',campaignController.getAllActiveCampaignController)
+//view one campaign
+router.get('/campaign/view/:id',campaignController.viewCampaignController)
+//make donation
+router.post('/campaign/:id/donate',donationController.donationPaymentController)
+//get latest campaign
+router.get('/campaign/latest',campaignController.LatestCampaignController)
 //-------------------------authorised---------------------------------
 //add campaign
 router.post('/fundraiser/campaign/create',jwtmiddleware,multerMiddleware.fields([
@@ -31,7 +39,7 @@ router.put("/fundraiser/:id/edit",jwtmiddleware,multerMiddleware.single('picture
 
 //------------------------------------------------authorised admin------------------------------------------------------------------
 //edit admin profile
-router.put('/admin/profile/:id/edit',adminMiddleware,multerMiddleware.single('picture'),adminController.updateAdminProfileController)
+router.put('/admin/profile/edit',adminMiddleware,multerMiddleware.single('picture'),adminController.updateAdminProfileController)
 //get all campaign by admin
 router.get('/admin/campaign/all',adminMiddleware,adminController.getAllCampaignAdminController)
 //getPending Campaign

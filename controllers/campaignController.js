@@ -27,6 +27,7 @@ exports.addCampaignController=async(req,res)=>{
     const documents =req.files?.documents?.map(file=>file.filename)
     //get fundriser mail from jwt payload
     const fundraiserMail=req.payload.userMail
+    const fundraiserId = req.payload.userId
      console.log(
         title,
         category,
@@ -39,7 +40,8 @@ exports.addCampaignController=async(req,res)=>{
         endDate,
         image,
         documents,
-        fundraiserMail
+        fundraiserMail,
+        fundraiserId
         
     )
     try{
@@ -51,7 +53,7 @@ exports.addCampaignController=async(req,res)=>{
 
         }else{
             const newCampaign =await campaigns.create({
-                title,category,location,beneficiary,shortDescription,longDescription,goalAmount,minDonation,endDate,image,documents,fundraiserMail,status
+                title,category,location,beneficiary,shortDescription,longDescription,goalAmount,minDonation,endDate,image,documents,fundraiserMail,fundraiserId,status
             })
             res.status(200).json(newCampaign)
         }
@@ -182,4 +184,63 @@ exports.fundraiserRemoveCampaignController=async(req,res)=>{
         console.log(err)
         res.status(500).json(err)
     }
+}
+//get all active campaign-unauthorised
+exports.getAllActiveCampaignController=async(req,res)=>{
+    console.log("inside getAllActiveCampaignController ")
+     try{
+        const activeCampaigns =await campaigns.find({status:"active"}).sort({ createdAt: -1 }).populate("fundraiserId","username")
+        if(activeCampaigns.length>0){
+            res.status(200).json(activeCampaigns)
+        }else{
+            res.status(404).json("no active camapigns are present")
+        }
+     }
+     catch(err){
+        console.log(err)
+        res.status(500).json(err)
+     }
+
+}
+//view a active campaign
+exports.viewCampaignController=async(req,res)=>{
+    console.log("inside viewCampaignController ")
+    const {id}=req.params
+    
+     try{
+        const campaign =await campaigns.findById(id).populate("fundraiserId","username")
+        console.log(campaign)
+        if(!campaign){
+            return res.status(404).json("campaign not found")
+        }
+        if(campaign.status !="active"){
+            return res.status(403).json("campaign is not active")
+        }
+        
+            res.status(200).json(campaign)
+        
+     }
+     catch(err){
+        console.log(err)
+        res.status(500).json(err)
+     }
+
+}
+//view latest campaigns
+exports.LatestCampaignController=async(req,res)=>{
+    console.log("inside  LatestCampaignController")
+    const {id}=req.params
+    
+     try{
+        const campaign =await campaigns.find({ status: "active" }).populate("fundraiserId","username").sort({ createdAt: -1 }).limit(4)
+        console.log(campaign)
+        
+            res.status(200).json(campaign)
+        
+     }
+     catch(err){
+        console.log(err)
+        res.status(500).json(err)
+     }
+
 }

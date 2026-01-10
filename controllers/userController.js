@@ -38,11 +38,11 @@ exports.loginController=async(req,res)=>{
          // check mail in model
          const existingUser =await users.findOne({email})
          console.log(existingUser)
-         console.log(existingUser)
+         
          if(existingUser){
             if(password==existingUser.password){
                 //token generation-jwt.sign(payload,secretKey)
-                const token=jwt.sign({userMail:existingUser.email,role:existingUser.role},process.env.JWTSECRET)
+                const token=jwt.sign({userId: existingUser._id,userMail:existingUser.email,role:existingUser.role},process.env.JWTSECRET)
                 res.status(200).json({user:existingUser,token})
 
             }else{
@@ -72,7 +72,7 @@ exports.googleLoginController=async(req,res)=>{
         if(existingUser){
             //login
             //generate token
-            const token=jwt.sign({userMail:existingUser.email,role:existingUser.role},process.env.JWTSECRET)
+            const token=jwt.sign({userId: existingUser._id,userMail:existingUser.email,role:existingUser.role},process.env.JWTSECRET)
             res.status(200).json({user:existingUser,token})
 
         }else{
