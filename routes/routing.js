@@ -4,6 +4,8 @@ const jwtmiddleware =require('../middlewares/jwtmiddleware')
 const campaignController =require('../controllers/campaignController')
 const router=new express.Router()
 const multerMiddleware =require('../middlewares/multerMiddleware')
+const adminMiddleware = require('../middlewares/adminMiddleware')
+const adminController=require('../controllers/adminController')
 
 //register
 router.post('/register',userController.registerController)
@@ -26,5 +28,22 @@ router.get('/fundraiser/campaign/:id/view',jwtmiddleware,campaignController.getA
 router.delete('/fundraiser/:id',jwtmiddleware,campaignController.fundraiserRemoveCampaignController)
 //update fundraiserProfile
 router.put("/fundraiser/:id/edit",jwtmiddleware,multerMiddleware.single('picture'),userController.updateFundraiserProfile)
+
+//------------------------------------------------authorised admin------------------------------------------------------------------
+//edit admin profile
+router.put('/admin/profile/:id/edit',adminMiddleware,multerMiddleware.single('picture'),adminController.updateAdminProfileController)
+//get all campaign by admin
+router.get('/admin/campaign/all',adminMiddleware,adminController.getAllCampaignAdminController)
+//getPending Campaign
+router.get('/admin/campaign/pending',adminMiddleware,adminController.getPendingCampaignController)
+//admin-get Camapign By id
+router.get('/admin/:id/view',adminMiddleware,adminController.getCampaignByIdController)
+//admin-approve Campaign
+router.put('/admin/:id/approve',adminMiddleware,adminController.approveCampaignController)
+//admin-reject Campaign
+router.put('/admin/:id/reject',adminMiddleware,adminController.rejectCampaignController)
+
+
+
 
 module.exports=router
