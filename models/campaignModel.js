@@ -72,6 +72,15 @@ const campaignSchema = new mongoose.Schema({
         ref: "users",
         required: true
     },
+    isWithdrawn: {
+        type: Boolean,
+        default: false
+    },
+
+    withdrawnAmount: {
+        type: Number,
+        default: 0
+    },
     createdAt: {
         type: Date,
         default: Date.now

@@ -1,6 +1,7 @@
 const campaigns = require('../models/campaignModel')
-
+const donations= require('../models/donationModel')
 const users=require('../models/userModel')
+const withdrawals=require('../models/withdrawModel')
 
 //admin profile edit
 exports.updateAdminProfileController=async(req,res)=>{
@@ -68,6 +69,10 @@ exports.approveCampaignController= async(req,res)=>{
     const{id}=req.params
     try{
         const campaign = await campaigns.findById(id).populate("fundraiserId","username")
+        
+        if (!campaign) {
+            return res.status(404).json("Campaign not found");
+        }
         if(campaign.status =="pending"){
             campaign.status = "active"
 
@@ -108,4 +113,101 @@ exports.rejectCampaignController= async(req,res)=>{
     }
 
 }
+//get all donation history
+exports.adminDonationHistoryController=async(req,res)=>{
+    console.log("inisde adminDonationHistoryController ")
+    try{
+        const donationHistory = await (await donations.find().populate("campaignId", "title category fundraiserMail"))
+        console.log(donationHistory)
+        res.status(200).json(donationHistory)
+    }
+    catch(error){
+        console.log(error)
+        res.status(500).json(error)
+    }
+}
+//get all pending withdrwal request
+exports.allPendingWithdrawalController =async(req,res)=>{
+    console.log("inside allPendingWithdrawalController")
+    try{
+          const pendingWithdrawals =await withdrawals.find({status:"pending"}).populate("campaignId","title category totalRaised").populate("fundraiserId","username email")
+          res.status(200).json(pendingWithdrawals)
+    }
+    catch(err){
+        console.log(err)
+        res.status(500).json(err)
+    }
+    
+
+}
+//approve or reject withdrawl request
+exports.approveWithdrawalController = async (req, res) => {
+    console.log("inside approveWithdrawalController");
+
+    const { id } = req.params;          // withdrawal id
+    const { action } = req.body;        // "approved" | "rejected"
+
+    try {
+        const withdrawal = await withdrawals.findById(id);
+
+        if (!withdrawal) {
+            return res.status(404).json({ message: "Withdrawal request not found" });
+        }
+
+        if (withdrawal.status !== "pending") {
+            return res.status(400).json({
+                message: "This withdrawal request is already processed"
+            });
+        }
+
+        // ================= APPROVE =================
+        if (action === "approved") {
+            const campaign = await campaigns.findById(withdrawal.campaignId);
+
+            if (!campaign) {
+                return res.status(404).json({ message: "Campaign not found" });
+            }
+
+            // Double safety
+            if (campaign.isWithdrawn) {
+                return res.status(400).json({
+                    message: "Campaign funds already withdrawn"
+                });
+            }
+
+            withdrawal.status = "approved";
+            withdrawal.processedAt = new Date();
+
+            campaign.isWithdrawn = true;
+            campaign.withdrawnAmount = withdrawal.amount;
+            campaign.status = "withdrawn";
+
+            await campaign.save();
+        }
+
+        // ================= REJECT =================
+        else if (action === "rejected") {
+            withdrawal.status = "rejected";
+            withdrawal.processedAt = new Date();
+        }
+
+        // ================= INVALID =================
+        else {
+            return res.status(400).json({
+                message: "Invalid action. Use 'approved' or 'rejected'"
+            });
+        }
+
+        await withdrawal.save();
+
+        res.status(200).json({
+            message: `Withdrawal ${withdrawal.status} successfully`,
+            withdrawal
+        });
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json(err);
+    }
+};
 

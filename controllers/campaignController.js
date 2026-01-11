@@ -185,23 +185,54 @@ exports.fundraiserRemoveCampaignController=async(req,res)=>{
         res.status(500).json(err)
     }
 }
-//get all active campaign-unauthorised
-exports.getAllActiveCampaignController=async(req,res)=>{
-    console.log("inside getAllActiveCampaignController ")
-     try{
-        const activeCampaigns =await campaigns.find({status:"active"}).sort({ createdAt: -1 }).populate("fundraiserId","username")
-        if(activeCampaigns.length>0){
-            res.status(200).json(activeCampaigns)
-        }else{
-            res.status(404).json("no active camapigns are present")
-        }
-     }
-     catch(err){
-        console.log(err)
-        res.status(500).json(err)
-     }
+// GET /campaign/latest
+// exports.getLatestCampaignForGuestController = async (req, res) => {
+//     console.log("inside getLatestCampaignForGuestController");
 
-}
+//     try {
+//         const activeCampaigns = await campaigns
+//             .find({ status: "active" }) // show all active campaigns
+//             .sort({ createdAt: -1 })
+//             .populate("fundraiserId", "username")
+//             .limit(4);
+
+//         if (activeCampaigns.length > 0) {
+//             res.status(200).json(activeCampaigns);
+//         } else {
+//             res.status(404).json("No active campaigns are present");
+//         }
+
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).json(err);
+//     }
+// };
+
+// GET /campaign/latest-auth
+exports.getLatestCampaignForUserController = async (req, res) => {
+    console.log("inside getLatestCampaignForUserController");
+
+    try {
+        const userId = req.payload.userId; // auth middleware ensures this exists
+
+        const activeCampaigns = await campaigns
+            .find({ status: "active", fundraiserId: { $ne: userId } }) // exclude own campaigns
+            .sort({ createdAt: -1 })
+            .populate("fundraiserId", "username")
+            .limit(4);
+
+        if (activeCampaigns.length > 0) {
+            res.status(200).json(activeCampaigns);
+        } else {
+            res.status(404).json("No active campaigns are present");
+        }
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json(err);
+    }
+};
+
 //view a active campaign
 exports.viewCampaignController=async(req,res)=>{
     console.log("inside viewCampaignController ")
@@ -226,21 +257,26 @@ exports.viewCampaignController=async(req,res)=>{
      }
 
 }
-//view latest campaigns
-exports.LatestCampaignController=async(req,res)=>{
-    console.log("inside  LatestCampaignController")
-    const {id}=req.params
-    
-     try{
-        const campaign =await campaigns.find({ status: "active" }).populate("fundraiserId","username").sort({ createdAt: -1 }).limit(4)
-        console.log(campaign)
-        
-            res.status(200).json(campaign)
-        
-     }
-     catch(err){
-        console.log(err)
-        res.status(500).json(err)
-     }
+// GET /campaign/active
+exports.getAllActiveCampaignForUserController = async (req, res) => {
+    console.log("inside getAllActiveCampaignForUserController");
 
-}
+    try {
+        const userId = req.payload.userId; // auth middleware ensures this exists
+
+        const activeCampaigns = await campaigns
+            .find({ status: "active", fundraiserId: { $ne: userId } }) // exclude own campaigns
+            .sort({ createdAt: -1 }) // optional: still shows newest first
+            .populate("fundraiserId", "username");
+
+        if (activeCampaigns.length > 0) {
+            res.status(200).json(activeCampaigns);
+        } else {
+            res.status(404).json({ message: "No active campaigns are present", data: [] });
+        }
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Internal server error", error: err });
+    }
+};
