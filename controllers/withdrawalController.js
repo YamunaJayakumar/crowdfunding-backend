@@ -26,7 +26,7 @@ exports.withdrwalRequestController = async (req, res) => {
         const withdrawal = await withdrawals.create({
             campaignId: id, fundraiserId, fundraiserMail: fundraiserMail, amount: campaign.totalRaised, bankDetails
         })
-        campaign.isWithdrawn = true;
+        campaign.isWithdrawn = false;
         await campaign.save();
         res.status(200).json({ message: "Withdrawal requested", withdrawal })
 

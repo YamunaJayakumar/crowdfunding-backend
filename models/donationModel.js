@@ -13,6 +13,11 @@ const donationSchema = new mongoose.Schema(
       required: true,
       min: 1
     },
+     donorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "users",
+      required: true
+    },
 
     donorName: {
       type: String,

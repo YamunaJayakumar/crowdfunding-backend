@@ -21,11 +21,11 @@ router.post('/google/sign-in',userController.googleLoginController)
 //view one campaign
 router.get('/campaign/view/:id',campaignController.viewCampaignController)
 //make donation
-router.post('/campaign/:id/donate',donationController.donationPaymentController)
+router.post('/campaign/:id/donate',jwtmiddleware,donationController.donationPaymentController)
 //get latest campaign
 // router.get('/campaign/latest',campaignController.getLatestCampaignForUserController)
 
-//-------------------------authorised fundraiser---------------------------------
+
 //get all active campaign
 router.get('/campaigns/acive/all',jwtmiddleware,campaignController.getAllActiveCampaignForUserController)
 //get latest campaign
@@ -48,6 +48,8 @@ router.put("/fundraiser/:id/edit",jwtmiddleware,multerMiddleware.single('picture
 router.post('/withdraw/:id/request',jwtmiddleware,withdrawalController.withdrwalRequestController)
 //get withdrawal history
 router.get('/:id/withdrawal/history',jwtmiddleware,withdrawalController.getWithdrwalStatusController)
+//get donation history
+router.get('/:id/donation/history',jwtmiddleware,donationController.getDonationHistoryController )
 
 //------------------------------------------------authorised admin------------------------------------------------------------------
 
@@ -69,7 +71,7 @@ router.get('/admin/donations/history',adminMiddleware,adminController.adminDonat
 //get all pending Withdrawal request
 router.get('/admin/withdrawal/all',adminMiddleware,adminController.allPendingWithdrawalController)
 //approve withdrwal Controller
-router.put('/admin/withdarwal/:id/approve',adminMiddleware,adminController.approveWithdrawalController)
+router.put('/admin/withdrawal/:id/approve',adminMiddleware,adminController.approveWithdrawalController)
 
 
 

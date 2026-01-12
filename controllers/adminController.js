@@ -117,7 +117,7 @@ exports.rejectCampaignController= async(req,res)=>{
 exports.adminDonationHistoryController=async(req,res)=>{
     console.log("inisde adminDonationHistoryController ")
     try{
-        const donationHistory = await (await donations.find().populate("campaignId", "title category fundraiserMail"))
+        const donationHistory = await donations.find().populate("campaignId", "title category fundraiserMail")
         console.log(donationHistory)
         res.status(200).json(donationHistory)
     }
@@ -141,73 +141,149 @@ exports.allPendingWithdrawalController =async(req,res)=>{
 
 }
 //approve or reject withdrawl request
+// exports.approveWithdrawalController = async (req, res) => {
+//     console.log("inside approveWithdrawalController");
+
+//     const { id } = req.params;          // withdrawal id
+//     const { action } = req.body;        // "approved" | "rejected"
+
+//     try {
+//         const withdrawal = await withdrawals.findById(id);
+
+//         if (!withdrawal) {
+//             return res.status(404).json({ message: "Withdrawal request not found" });
+//         }
+
+//         if (withdrawal.status !== "pending") {
+//             return res.status(400).json({
+//                 message: "This withdrawal request is already processed"
+//             });
+//         }
+
+//         // ================= APPROVE =================
+//         if (action === "approved") {
+//             const campaign = await campaigns.findById(withdrawal.campaignId);
+
+//             if (!campaign) {
+//                 return res.status(404).json({ message: "Campaign not found" });
+//             }
+
+//             // Double safety
+//             if (campaign.isWithdrawn) {
+//                 return res.status(400).json({
+//                     message: "Campaign funds already withdrawn"
+//                 });
+//             }
+
+//             withdrawal.status = "approved";
+//             withdrawal.processedAt = new Date();
+
+//             campaign.isWithdrawn = true;
+//             campaign.withdrawnAmount = withdrawal.amount;
+//             campaign.status = "withdrawn";
+
+//             await campaign.save();
+//         }
+
+//         // ================= REJECT =================
+//         else if (action === "rejected") {
+//             withdrawal.status = "rejected";
+//             withdrawal.processedAt = new Date();
+//         }
+
+//         // ================= INVALID =================
+//         else {
+//             return res.status(400).json({
+//                 message: "Invalid action. Use 'approved' or 'rejected'"
+//             });
+//         }
+
+//         await withdrawal.save();
+
+//         res.status(200).json({
+//             message: `Withdrawal ${withdrawal.status} successfully`,
+//             withdrawal
+//         });
+
+//     } catch (err) {
+//         console.log(err);
+//         res.status(500).json(err);
+//     }
+// };
+// approve or reject withdrawal request
 exports.approveWithdrawalController = async (req, res) => {
-    console.log("inside approveWithdrawalController");
+  console.log("inside approveWithdrawalController");
+  console.log("params:", req.params);
+  console.log("body:", req.body);
 
-    const { id } = req.params;          // withdrawal id
-    const { action } = req.body;        // "approved" | "rejected"
+  const { id } = req.params;
+  const { action } = req.body;
 
-    try {
-        const withdrawal = await withdrawals.findById(id);
+  try {
+    const withdrawal = await withdrawals.findById(id);
+    console.log("withdrawal:", withdrawal);
 
-        if (!withdrawal) {
-            return res.status(404).json({ message: "Withdrawal request not found" });
-        }
-
-        if (withdrawal.status !== "pending") {
-            return res.status(400).json({
-                message: "This withdrawal request is already processed"
-            });
-        }
-
-        // ================= APPROVE =================
-        if (action === "approved") {
-            const campaign = await campaigns.findById(withdrawal.campaignId);
-
-            if (!campaign) {
-                return res.status(404).json({ message: "Campaign not found" });
-            }
-
-            // Double safety
-            if (campaign.isWithdrawn) {
-                return res.status(400).json({
-                    message: "Campaign funds already withdrawn"
-                });
-            }
-
-            withdrawal.status = "approved";
-            withdrawal.processedAt = new Date();
-
-            campaign.isWithdrawn = true;
-            campaign.withdrawnAmount = withdrawal.amount;
-            campaign.status = "withdrawn";
-
-            await campaign.save();
-        }
-
-        // ================= REJECT =================
-        else if (action === "rejected") {
-            withdrawal.status = "rejected";
-            withdrawal.processedAt = new Date();
-        }
-
-        // ================= INVALID =================
-        else {
-            return res.status(400).json({
-                message: "Invalid action. Use 'approved' or 'rejected'"
-            });
-        }
-
-        await withdrawal.save();
-
-        res.status(200).json({
-            message: `Withdrawal ${withdrawal.status} successfully`,
-            withdrawal
-        });
-
-    } catch (err) {
-        console.log(err);
-        res.status(500).json(err);
+    if (!withdrawal) {
+      return res.status(404).json({ message: "Withdrawal request not found" });
     }
+
+    if (withdrawal.status.toLowerCase() !== "pending") {
+      return res.status(400).json({
+        message: "This withdrawal request is already processed",
+        currentStatus: withdrawal.status
+      });
+    }
+
+    if (action === "approved") {
+
+      const campaign = await campaigns.findById(withdrawal.campaignId);
+      console.log("campaign:", campaign);
+
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+
+      if (campaign.isWithdrawn) {
+        return res.status(400).json({
+          message: "Campaign funds already withdrawn"
+        });
+      }
+
+      withdrawal.status = "approved";
+      withdrawal.processedAt = new Date();
+
+      campaign.isWithdrawn = true;
+      campaign.withdrawnAmount = withdrawal.amount;
+      campaign.status = "closed";
+
+      await campaign.save();
+    }
+    else if (action === "rejected") {
+      withdrawal.status = "rejected";
+      withdrawal.processedAt = new Date();
+    }
+    else {
+      return res.status(400).json({
+        message: "Invalid action",
+        received: action
+      });
+    }
+
+    await withdrawal.save();
+
+    return res.status(200).json({
+      message: `Withdrawal ${withdrawal.status} successfully`,
+      withdrawal
+    });
+
+  } catch (err) {
+    console.error("APPROVAL ERROR:", err);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: err.message
+    });
+  }
 };
+
+
 
