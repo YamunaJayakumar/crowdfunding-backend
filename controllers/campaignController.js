@@ -1,14 +1,14 @@
-const campaigns=require('../models/campaignModel')
+const campaigns = require('../models/campaignModel')
 
 //add campaign api
-exports.addCampaignController=async(req,res)=>{
+exports.addCampaignController = async (req, res) => {
     console.log("inside addcampaignController");
-    if(!req.payload){
+    if (!req.payload) {
         res.status(401).json("Unauthorized: JWT not verified")
     }
-        //get campaign details from req.body
+    //get campaign details from req.body
 
-         const {
+    const {
         title,
         category,
         location,
@@ -19,16 +19,16 @@ exports.addCampaignController=async(req,res)=>{
         minDonation,
         endDate,
         status
-        
+
     } = req.body
-    
+
     //get uploaded files
-    const image =req.files?.image?.[0]?.filename
-    const documents =req.files?.documents?.map(file=>file.filename)
+    const image = req.files?.image?.[0]?.filename
+    const documents = req.files?.documents?.map(file => file.filename)
     //get fundriser mail from jwt payload
-    const fundraiserMail=req.payload.userMail
+    const fundraiserMail = req.payload.userMail
     const fundraiserId = req.payload.userId
-     console.log(
+    console.log(
         title,
         category,
         location,
@@ -42,145 +42,145 @@ exports.addCampaignController=async(req,res)=>{
         documents,
         fundraiserMail,
         fundraiserId
-        
+
     )
-    try{
+    try {
         const existingCampaign = await campaigns.findOne({
-            title,fundraiserMail
+            title, fundraiserMail
         })
-        if(existingCampaign){
+        if (existingCampaign) {
             res.status(409).json("campaign already exists")
 
-        }else{
-            const newCampaign =await campaigns.create({
-                title,category,location,beneficiary,shortDescription,longDescription,goalAmount,minDonation,endDate,image,documents,fundraiserMail,fundraiserId,status
+        } else {
+            const newCampaign = await campaigns.create({
+                title, category, location, beneficiary, shortDescription, longDescription, goalAmount, minDonation, endDate, image, documents, fundraiserMail, fundraiserId, status
             })
             res.status(200).json(newCampaign)
         }
 
-        
-    }catch(err){
+
+    } catch (err) {
         console.log(err)
         res.status(500).json(err)
     }
 
-    
+
 
 }
 //edit campaign api
-exports.editCampaignController=async(req,res)=>{
+exports.editCampaignController = async (req, res) => {
     console.log("inside editCampaignController")
     //fundrisermail,id
-    const fundraiserMail=req.payload.userMail
-    const {id}=req.params
-    try{
-        const campaign =await campaigns.findOne({_id:id,fundraiserMail})
+    const fundraiserMail = req.payload.userMail
+    const { id } = req.params
+    try {
+        const campaign = await campaigns.findOne({ _id: id, fundraiserMail })
         //check campaign exists
-        if(!campaign){
-             res.status(404).json("campaign not exists")
-             }else{
-                 if(campaign.status=="active"){
-                    //partially edit
-                    campaign.shortDescription =req.body.shortDescription
-                    campaign.longDescription=req.body.longDescription
-                    
-                    await campaign.save()
-                    res.status(200).json(campaign)
+        if (!campaign) {
+            res.status(404).json("campaign not exists")
+        } else {
+            if (campaign.status == "active") {
+                //partially edit
+                campaign.shortDescription = req.body.shortDescription
+                campaign.longDescription = req.body.longDescription
 
-                
+                await campaign.save()
+                res.status(200).json(campaign)
+
+
             }
-            else if(campaign.status == "pending"){
+            else if (campaign.status == "pending") {
                 //edit all fields
-                Object.keys(req.body).forEach(field=>
-                    campaign[field]=req.body[field]
+                Object.keys(req.body).forEach(field =>
+                    campaign[field] = req.body[field]
 
                 )
                 //update files if uploaded
-                if(req.files?.image?.[0]?.filename){
-                    campaign.image =req.files.image[0].filename
+                if (req.files?.image?.[0]?.filename) {
+                    campaign.image = req.files.image[0].filename
 
                 }
-                if(req.files?.documents){
-                    campaign.documents=req.files.documents.map(f=>f.filename)
+                if (req.files?.documents) {
+                    campaign.documents = req.files.documents.map(f => f.filename)
                 }
                 await campaign.save()
                 res.status(200).json(campaign)
 
 
-                
+
             }
-            else if (campaign.status=="closed"){
+            else if (campaign.status == "closed") {
                 res.status(403).json("campaign closed")
             }
-           
+
         }
-    }catch(err){
+    } catch (err) {
         console.log(err)
         res.status(500).json(err)
     }
-    
+
 
 }
 //get a campaign
-exports.getACampignController=async(req,res)=>{
+exports.getACampignController = async (req, res) => {
     console.log("inside getAcampaignController");
-    const{id}=req.params
-    const fundraiserMail=req.payload.userMail
-    try{
-        const viewcampaign = await campaigns.findOne({_id:id,fundraiserMail})
-         if (!viewcampaign) {
+    const { id } = req.params
+    const fundraiserMail = req.payload.userMail
+    try {
+        const viewcampaign = await campaigns.findOne({ _id: id, fundraiserMail })
+        if (!viewcampaign) {
             return res.status(404).json({ message: "Campaign not found" });
         }
         res.status(200).json(viewcampaign)
     }
-    catch(err){
+    catch (err) {
         console.log(err)
         res.status(500).json(err)
     }
 
-    
+
 }
 //get all campaign-fundraiser
-exports.fundraiserGetAllCampaignController=async(req,res)=>{
+exports.fundraiserGetAllCampaignController = async (req, res) => {
     console.log("inside fundraiserGetAllCampaignController")
-    const fundraiserMail=req.payload.userMail
-    
-        try{
-            const allCampaigns = await campaigns.find({fundraiserMail})
-            res.status(200).json(allCampaigns)
+    const fundraiserMail = req.payload.userMail
 
-        }
-        catch(err){
-            console.log(err);
-            res.status(500).json(err)
-            
-        }
+    try {
+        const allCampaigns = await campaigns.find({ fundraiserMail })
+        res.status(200).json(allCampaigns)
+
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).json(err)
+
+    }
 }
 //delete campaign
-exports.fundraiserRemoveCampaignController=async(req,res)=>{
+exports.fundraiserRemoveCampaignController = async (req, res) => {
     console.log("inside fundraiserRemoveCampaignController")
-    
-    const fundraiserMail=req.payload.userMail
-    const {id}=req.params
-    try{
-        const campaign=await campaigns.findOne({_id:id,fundraiserMail})
-        if(!campaign){
-           return res.status(404).json("campaign not found")
+
+    const fundraiserMail = req.payload.userMail
+    const { id } = req.params
+    try {
+        const campaign = await campaigns.findOne({ _id: id, fundraiserMail })
+        if (!campaign) {
+            return res.status(404).json("campaign not found")
 
         }
-        
-       if(campaign.status !=="pending"){
-             return  res.status(403).json("Only pending campaigns can be deleted")
+
+        if (campaign.status !== "pending") {
+            return res.status(403).json("Only pending campaigns can be deleted")
         }
 
-            await campaigns.findByIdAndDelete(id)
-            res.status(200).json('campaign deleted successfully')
+        await campaigns.findByIdAndDelete(id)
+        res.status(200).json('campaign deleted successfully')
 
-        
+
 
 
     }
-    catch(err){
+    catch (err) {
         console.log(err)
         res.status(500).json(err)
     }
@@ -216,7 +216,11 @@ exports.getLatestCampaignForUserController = async (req, res) => {
         const userId = req.payload.userId; // auth middleware ensures this exists
 
         const activeCampaigns = await campaigns
-            .find({ status: "active", fundraiserId: { $ne: userId } }) // exclude own campaigns
+            .find({
+                status: "active",
+                fundraiserId: { $ne: userId },
+                $expr: { $lt: ["$totalRaised", "$goalAmount"] } // totalRaised < goalAmount
+            })
             .sort({ createdAt: -1 })
             .populate("fundraiserId", "username")
             .limit(4);
@@ -234,27 +238,27 @@ exports.getLatestCampaignForUserController = async (req, res) => {
 };
 
 //view a active campaign
-exports.viewCampaignController=async(req,res)=>{
+exports.viewCampaignController = async (req, res) => {
     console.log("inside viewCampaignController ")
-    const {id}=req.params
-    
-     try{
-        const campaign =await campaigns.findById(id).populate("fundraiserId","username")
+    const { id } = req.params
+
+    try {
+        const campaign = await campaigns.findById(id).populate("fundraiserId", "username")
         console.log(campaign)
-        if(!campaign){
+        if (!campaign) {
             return res.status(404).json("campaign not found")
         }
-        if(campaign.status !="active"){
+        if (campaign.status != "active") {
             return res.status(403).json("campaign is not active")
         }
-        
-            res.status(200).json(campaign)
-        
-     }
-     catch(err){
+
+        res.status(200).json(campaign)
+
+    }
+    catch (err) {
         console.log(err)
         res.status(500).json(err)
-     }
+    }
 
 }
 // GET /campaign/active
@@ -265,8 +269,12 @@ exports.getAllActiveCampaignForUserController = async (req, res) => {
         const userId = req.payload.userId; // auth middleware ensures this exists
 
         const activeCampaigns = await campaigns
-            .find({ status: "active", fundraiserId: { $ne: userId } }) // exclude own campaigns
-            .sort({ createdAt: -1 }) // optional: still shows newest first
+            .find({ 
+                status: "active", 
+                fundraiserId: { $ne: userId },
+                $expr: { $lt: ["$totalRaised", "$goalAmount"] } // only include campaigns that haven't reached their goal
+            })
+            .sort({ createdAt: -1 }) // newest first
             .populate("fundraiserId", "username");
 
         if (activeCampaigns.length > 0) {
