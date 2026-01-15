@@ -81,7 +81,7 @@ exports.getDonationHistoryController = async (req, res) => {
             .populate("campaignId", "title category fundraiserMail goalAmount")
             .sort({ createdAt: -1 }); // latest donations first
 
-        res.status(200).json({ donations: donationHistory });
+        res.status(200).json(donationHistory);
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: "Something went wrong", error: err.message });

@@ -49,7 +49,7 @@ router.post('/withdraw/:id/request',jwtmiddleware,withdrawalController.withdrwal
 //get withdrawal history
 router.get('/:id/withdrawal/history',jwtmiddleware,withdrawalController.getWithdrwalStatusController)
 //get donation history
-router.get('/:id/donation/history',jwtmiddleware,donationController.getDonationHistoryController )
+router.get('/donation/history',jwtmiddleware,donationController.getDonationHistoryController )
 
 //------------------------------------------------authorised admin------------------------------------------------------------------
 
