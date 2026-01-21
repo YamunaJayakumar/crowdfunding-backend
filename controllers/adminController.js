@@ -254,7 +254,7 @@ exports.approveWithdrawalController = async (req, res) => {
 
       campaign.isWithdrawn = true;
       campaign.withdrawnAmount = withdrawal.amount;
-      campaign.status = "closed";
+      campaign.status = "withdrawn";
 
       await campaign.save();
     }
